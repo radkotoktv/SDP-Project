@@ -72,13 +72,12 @@ bool isContained(Pair* arr, int arr_size, std::string elem){
     return false;
 }
 
-int Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){
+void Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){ // k - the number of nodes in the graph;
     int* shortestPath = new int[k];
 
     shortestPath[from.index] = 0;
-    for(std::size_t i = 0; i < k; ++i){
-        if(i != from.index)
-            shortestPath[i] = 99999;
+    for(std::size_t i = 1; i < k; ++i){
+        shortestPath[i] = 99999;
     }
 
     std::priority_queue<Edge> pq;
@@ -100,14 +99,11 @@ int Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){
         }
     }
 
-    for (int i = 0; i < k ; ++i) {
+    for(std::size_t i = 0; i < k; ++i){
         std::cout << i << " " << shortestPath[i] << std::endl;
     }
 
-    int temp = shortestPath[to.index];
     delete[] shortestPath;
-
-    return temp;
 }
 
 Node<std::string>* algorithm(std::fstream& f){
@@ -151,10 +147,6 @@ Node<std::string>* algorithm(std::fstream& f){
 
     }
 
-    for(std::size_t i = 0; i < k; ++i){
-        std::cout << locations[i].monument << "|" << locations[i].index << std::endl;
-    }
-
     while(!froms.empty()){
         graph[froms.front().index].push_back({froms.front(), tos.front(), times.front()});
         graph[tos.front().index].push_back({tos.front() ,froms.front(), times.front()});
@@ -167,22 +159,19 @@ Node<std::string>* algorithm(std::fstream& f){
         times.pop();
     }
 
-    printGraph(tempGraph, k);
-
     int minutes;
     f >> minutes;
 
 
-    //Dijkstra moment;
-    //std::cout << Dijkstra(graph, k, locations[0], locations[5]);
-   int* shortestPath = new int[k];
+    //Dijkstra to calculate the shortest path from "Railstation"(always with index 0) to every other node in the graph;
+    int* shortestPath = new int[k]; // an array where we keep the times needed to reach the respective nodes;
 
     shortestPath[0] = 0;
     for(std::size_t i = 1; i < k; ++i){
         shortestPath[i] = 99999;
     }
 
-    std::priority_queue<Edge> pq;
+    std::priority_queue<Edge> pq;  // a priority queue where we store the paths we can take from every node for the Dijkstra algorithm;
     while (!tempGraph[0].empty()) {
         pq.push(tempGraph[0].back());
         tempGraph[0].pop_back();
@@ -201,15 +190,11 @@ Node<std::string>* algorithm(std::fstream& f){
         }
     }
 
-    for (int i = 0; i < k ; ++i) {
-        std::cout << i << " " << shortestPath[i] << std::endl;
-    }
-
-    printGraph(graph, k);
-
+    //the "shortestPath" array tells us the amount of time we need to get to every node from the start node;
+    //ex. shortestPath[3] is the amount of time we need to get from node with index 0 to node with index 3;
+    //in "Sofia.txt" that would be from "Railstation" to "DzhumayaSquare";
 
     std::priority_queue<Edge> paths;
-
     Node<std::string>* start = new Node<std::string>(locations[0].monument); // the start node should always be "Railstation", no matter the other destinations in the city;
     Node<std::string>* current = start;
 
@@ -219,13 +204,13 @@ Node<std::string>* algorithm(std::fstream& f){
     while(currentPath + shortestPath[i] <= minutes){
         int numberOfElements = 0;
         for(std::size_t j = 0; j < graph[i].size(); ++j){
-            if(graph[i][j] != lastVisited){
+            if(graph[i][j] != lastVisited){ // shouldn't go back the way it came, as that won't add to the amount of visited nodes in the graph;
                 paths.push(graph[i][j]);
                 numberOfElements++;
             }
         }
 
-        while(numberOfElements > 1){
+        while(numberOfElements > 1){ // leaves just the last element of the priority queue (a.k.a the smallest element in the queue);
             paths.pop();
             numberOfElements--;
         }
@@ -233,12 +218,12 @@ Node<std::string>* algorithm(std::fstream& f){
         if(currentPath + shortestPath[i] + paths.top().time <= minutes){ // checks if it can come back to "Railstation" after the next step;
             current->next = new Node<std::string>(locations[paths.top().to.index].monument);
             current = current->next;
-            i = paths.top().to.index;
+            i = paths.top().to.index; // moves "i" to the next node;
             currentPath += paths.top().time;
-            lastVisited = paths.top();
-            paths.pop();
+            lastVisited = paths.top(); // saves the last visited node;
+            paths.pop(); // empties the queue 
         }
-        else break; // if it can't come back, it exits the loop;
+        else break; // if it can't come back, it exits the loop at the current node;
     }
 
 
