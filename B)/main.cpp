@@ -14,7 +14,13 @@ struct Node {
 struct Pair{
     std::string monument;
     int index;
+
+    friend bool operator < (const Pair& first, const Pair& second);
 };
+
+bool operator < (const Pair& first, const Pair& second) {
+    return first.index < second.index;
+}
 
 struct Edge{
     Pair from;
@@ -22,10 +28,15 @@ struct Edge{
     int time;
 
     friend bool operator < (const Edge& first, const Edge& second);
+    friend bool operator != (const Edge& first, const Edge& second);
 };
 
 bool operator < (const Edge& first, const Edge& second) {
     return first.time < second.time;
+}
+
+bool operator != (const Edge& first, const Edge& second){
+    return first.time != second.time;
 }
 
 void printGraph(std::vector<Edge>* graph, int vertices){
@@ -61,6 +72,44 @@ bool isContained(Pair* arr, int arr_size, std::string elem){
     return false;
 }
 
+int Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){
+    int* shortestPath = new int[k];
+
+    shortestPath[from.index] = 0;
+    for(std::size_t i = 0; i < k; ++i){
+        if(i != from.index)
+            shortestPath[i] = 99999;
+    }
+
+    std::priority_queue<Edge> pq;
+    while (!graph[from.index].empty()) {
+        pq.push(graph[from.index].back());
+        graph[from.index].pop_back();
+    }
+
+    while(!pq.empty()){
+        Edge c = pq.top();
+        pq.pop();
+
+        if(shortestPath[c.to.index] > shortestPath[c.from.index] + c.time){
+            shortestPath[c.to.index] = shortestPath[c.from.index] + c.time;
+            while (!graph[c.to.index].empty()) {
+                pq.push(graph[c.to.index].back());
+                graph[c.to.index].pop_back();
+            }            
+        }
+    }
+
+    for (int i = 0; i < k ; ++i) {
+        std::cout << i << " " << shortestPath[i] << std::endl;
+    }
+
+    int temp = shortestPath[to.index];
+    delete[] shortestPath;
+
+    return temp;
+}
+
 Node<std::string>* algorithm(std::fstream& f){
     if (!f.is_open()){
         std::cout << "Problem while opening the file" << std::endl;
@@ -71,6 +120,7 @@ Node<std::string>* algorithm(std::fstream& f){
     f >> k >> r;
 
     std::vector<Edge>* graph = new std::vector<Edge>[k];
+    std::vector<Edge>* tempGraph = new std::vector<Edge>[k];
 
     std::queue<Pair> froms;
     std::queue<Pair> tos;
@@ -108,30 +158,34 @@ Node<std::string>* algorithm(std::fstream& f){
     while(!froms.empty()){
         graph[froms.front().index].push_back({froms.front(), tos.front(), times.front()});
         graph[tos.front().index].push_back({tos.front() ,froms.front(), times.front()});
+        
+        tempGraph[froms.front().index].push_back({froms.front(), tos.front(), times.front()});
+        tempGraph[tos.front().index].push_back({tos.front() ,froms.front(), times.front()});
+        
         froms.pop();
         tos.pop();
         times.pop();
     }
 
-    //printGraph(graph, k);
+    printGraph(tempGraph, k);
 
     int minutes;
     f >> minutes;
 
 
     //Dijkstra moment;
-    int* shortestPath = new int[k];
-    
+    //std::cout << Dijkstra(graph, k, locations[0], locations[5]);
+   int* shortestPath = new int[k];
+
     shortestPath[0] = 0;
     for(std::size_t i = 1; i < k; ++i){
         shortestPath[i] = 99999;
     }
 
     std::priority_queue<Edge> pq;
-
-    while (!graph[0].empty()) { // adds all connected to "Railstation" nodes to "pq";
-        pq.push(graph[0].back());
-        graph[0].pop_back();
+    while (!tempGraph[0].empty()) {
+        pq.push(tempGraph[0].back());
+        tempGraph[0].pop_back();
     }
 
     while(!pq.empty()){
@@ -140,9 +194,9 @@ Node<std::string>* algorithm(std::fstream& f){
 
         if(shortestPath[c.to.index] > shortestPath[c.from.index] + c.time){
             shortestPath[c.to.index] = shortestPath[c.from.index] + c.time;
-            while (!graph[c.to.index].empty()) {
-                pq.push(graph[c.to.index].back());
-                graph[c.to.index].pop_back();
+            while (!tempGraph[c.to.index].empty()) {
+                pq.push(tempGraph[c.to.index].back());
+                tempGraph[c.to.index].pop_back();
             }            
         }
     }
@@ -151,11 +205,48 @@ Node<std::string>* algorithm(std::fstream& f){
         std::cout << i << " " << shortestPath[i] << std::endl;
     }
 
+    printGraph(graph, k);
+
+
+    std::priority_queue<Edge> paths;
+
+    Node<std::string>* start = new Node<std::string>(locations[0].monument); // the start node should always be "Railstation", no matter the other destinations in the city;
+    Node<std::string>* current = start;
+
+    int i = 0;
+    int currentPath = 0;
+    Edge lastVisited;
+    while(currentPath + shortestPath[i] <= minutes){
+        int numberOfElements = 0;
+        for(std::size_t j = 0; j < graph[i].size(); ++j){
+            if(graph[i][j] != lastVisited){
+                paths.push(graph[i][j]);
+                numberOfElements++;
+            }
+        }
+
+        while(numberOfElements > 1){
+            paths.pop();
+            numberOfElements--;
+        }
+
+        if(currentPath + shortestPath[i] + paths.top().time <= minutes){ // checks if it can come back to "Railstation" after the next step;
+            current->next = new Node<std::string>(locations[paths.top().to.index].monument);
+            current = current->next;
+            i = paths.top().to.index;
+            currentPath += paths.top().time;
+            lastVisited = paths.top();
+            paths.pop();
+        }
+        else break; // if it can't come back, it exits the loop;
+    }
+
 
     delete[] shortestPath;
     delete[] graph;
     delete[] locations;
 
+    return start;
 }
 
 void printList(Node<std::string>* head){
@@ -177,6 +268,8 @@ void deleteList(Node<std::string>* head){
 
 int main (){
     std::fstream file("Sofia.txt"); 
-    algorithm(file);
+    Node<std::string>* list = algorithm(file);
     file.close();
+    printList(list);
+    deleteList(list);
 }
