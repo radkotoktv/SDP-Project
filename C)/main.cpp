@@ -27,7 +27,7 @@ public:
 
     void removeChild(int index){
         std::queue<Box*> temp;
-        int a = this->children.size() - index + 1;
+        int a = this->children.size() - index - 1;
         int b = a;
         while(a && !this->children.empty()){
             temp.push(this->children.back());
@@ -35,7 +35,10 @@ public:
             a--;
         }
 
-        this->children.pop_back();
+        if(!this->children.empty()){
+            this->children.pop_back();
+        }
+    
 
         while(b){
             this->children.push_back(temp.front());
