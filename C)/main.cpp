@@ -109,21 +109,30 @@ void doStuff(std::fstream& f){
         }
     }
 
-    for(std::size_t i = 0; i < b; ++i){
-        int temp = arr[i]->getChildren().size();
-        for(std::size_t j = 0; j < temp; ++j){
-            if(arr[i]->getChildren()[j]->getChildren().empty() && arr[i]->getChildren()[j]->getItems().empty()){ // removes an empty box with no boxes inside it;
-                arr[i]->removeChild(j);
-                arr[i]->setNumberOfChildren(arr[i]->getNumberOfChildren() - 1);
-            }
-            else if(arr[i]->getChildren()[j]->getChildren().size() == 1 && arr[i]->getChildren()[j]->getItems().empty()){
-                arr[i]->addChild(arr[i]->getChildren()[j]->getChildren()[0]); // "0" because there if it's in the "if" statement there will be only 1 child; (a.k.a vnuka)
-                arr[i]->removeChild(j);
-            }
-            
-        }
 
-    }
+    bool changes;
+    
+    do{
+        changes = false;
+        for(std::size_t i = 0; i < b; ++i){
+        int temp = arr[i]->getChildren().size();
+        
+            for(std::size_t j = 0; j < temp; ++j){
+                if(arr[i]->getChildren()[j]->getChildren().empty() && arr[i]->getChildren()[j]->getItems().empty()){ // removes an empty box with no boxes inside it;
+                    arr[i]->removeChild(j);
+                    arr[i]->setNumberOfChildren(arr[i]->getNumberOfChildren() - 1);
+                    changes = true;
+                }
+                else if(arr[i]->getChildren()[j]->getChildren().size() == 1 && arr[i]->getChildren()[j]->getItems().empty()){
+                    arr[i]->addChild(arr[i]->getChildren()[j]->getChildren()[0]); // "0" because there if it's in the "if" statement there will be only 1 child; (a.k.a vnuka)
+                    arr[i]->removeChild(j);
+                    changes = true;
+                }
+            
+            }
+
+        }
+    } while (changes);
 
 //print all boxes (for testing purposes);
 //------------------------------------------------------------------------------------------------------------
