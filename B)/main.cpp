@@ -4,14 +4,14 @@
 #include <vector>
 #include <queue>
 template <typename T>
-struct Node {
+struct Node { // the returned LinkedList of locations visited;
     T data;
     Node* next;
 
     Node(T& data, Node* next = nullptr) : data(data), next(next) {};
 };
 
-struct Pair{
+struct Pair{ // to pair a node in the graph to an index;
     std::string monument;
     int index;
 
@@ -22,7 +22,7 @@ bool operator < (const Pair& first, const Pair& second) {
     return first.index < second.index;
 }
 
-struct Edge{
+struct Edge{ // and edge in the graph;
     Pair from;
     Pair to;
     int time;
@@ -39,40 +39,22 @@ bool operator != (const Edge& first, const Edge& second){
     return first.time != second.time;
 }
 
-void printGraph(std::vector<Edge>* graph, int vertices){
-	for(std::size_t i = 0; i < vertices; ++i){
-		std::cout << "Vertex " << i << " has edges to: ";
-		for(const Edge& e: graph[i]){
-			std::cout << e.to.monument << " (" << e.time << " minutes) ";
-		}
-		std::cout << std::endl;
-	}
-}
-
-void printQueue(std::queue<Pair> queue){
-    while(!queue.empty()){
-        std::cout << queue.front().monument << "|" << queue.front().index << std::endl;
-        queue.pop();
-    }
-    std::cout << std::endl;
-}
-
-void printQueue(std::queue<int> queue){
-    while(!queue.empty()){
-        std::cout << queue.front() << std::endl;
-        queue.pop();
-    }
-    std::cout << std::endl;
-}
-
-bool isContained(Pair* arr, int arr_size, std::string elem){
+bool isContained(Pair* arr, int arr_size, std::string elem){ // checks if a monument is contained in an array of Pairs;
     for(std::size_t i = 0; i < arr_size; ++i){
         if(arr[i].monument == elem) return true;
     }
     return false;
 }
 
-void Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){ // k - the number of nodes in the graph;
+/*  // Dijkstra as a function: 1. graph - the graph it traverses;
+    //                         2. k - the number of nodes in the graph;
+    //                         3. from which node do we start the Dijkstra;
+    //                         4. which node it returns the path to;
+
+//----------------------------------------
+//TODO: doesn't work when from.index != 0;
+//----------------------------------------
+void Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){
     int* shortestPath = new int[k];
 
     shortestPath[from.index] = 0;
@@ -103,36 +85,35 @@ void Dijkstra(std::vector<Edge>* graph, int k, Pair from, Pair to){ // k - the n
         std::cout << i << " " << shortestPath[i] << std::endl;
     }
 
+    int temp = shortestPath[to];
     delete[] shortestPath;
+
+    return temp;
 }
+*/
 
 Node<std::string>* algorithm(std::fstream& f){
-    if (!f.is_open()){
-        std::cout << "Problem while opening the file" << std::endl;
-        return nullptr;
-    }
-
     int k, r;
     f >> k >> r;
 
-    std::vector<Edge>* graph = new std::vector<Edge>[k];
+    std::vector<Edge>* graph = new std::vector<Edge>[k]; // our graph;
     std::vector<Edge>* tempGraph = new std::vector<Edge>[k];
 
-    std::queue<Pair> froms;
-    std::queue<Pair> tos;
-    std::queue<int> times;
-    Pair* locations = new Pair[k];
+    std::queue<Pair> froms; // keeps all the nodes in the graph that edges start from;
+    std::queue<Pair> tos; // keeps all the nodes in the graph that edges ent at;
+    std::queue<int> times; // keep all the times it takes to traverse the edges;
+    Pair* locations = new Pair[k]; // stores the unique locations with their indexes;
 
     int counter = 0;
-    std::string first, second;
-    int temp;
+    std::string first, second; // "first" is the node the edge starts from / "second" is the node the edge goes to;
+    int temp; // "temp" is the amount of time it takes from "first" to "second";
     for(std::size_t i = 0; i < r; ++i){
         f >> first >> second >> temp;
-        if(!isContained(locations, k, first)){
+        if(!isContained(locations, k, first)){ // if the "first" location isn't in "locations", adds it and gives it an index;
             locations[counter] = {first, counter};
             counter++;
         }
-        if(!isContained(locations, k, second)){
+        if(!isContained(locations, k, second)){ // if the "second" location isn't in "locations", adds it and gives it an index;
             locations[counter] = {second, counter};
             counter++;
         }
@@ -147,7 +128,7 @@ Node<std::string>* algorithm(std::fstream& f){
 
     }
 
-    while(!froms.empty()){
+    while(!froms.empty()){ // makes the actual graph;
         graph[froms.front().index].push_back({froms.front(), tos.front(), times.front()});
         graph[tos.front().index].push_back({tos.front() ,froms.front(), times.front()});
         
@@ -226,9 +207,11 @@ Node<std::string>* algorithm(std::fstream& f){
         else break; // if it can't come back, it exits the loop at the current node;
     }
 
+    //TODO: come back :(;
 
     delete[] shortestPath;
     delete[] graph;
+    delete[] tempGraph;
     delete[] locations;
 
     return start;
@@ -253,6 +236,10 @@ void deleteList(Node<std::string>* head){
 
 int main (){
     std::fstream file("Sofia.txt"); 
+    if (!file.is_open()){
+        std::cout << "Problem while opening the file" << std::endl;
+        return 0;
+    }
     Node<std::string>* list = algorithm(file);
     file.close();
     printList(list);

@@ -73,7 +73,7 @@ void clean(Box* root){ // deletes memory;
     delete root;
 }
 
-void doStuff(std::fstream& f){
+void minimizeBoxes(std::fstream& f){
     int b;
     f >> b; // the total amount of boxes;
 
@@ -112,8 +112,8 @@ void doStuff(std::fstream& f){
 
     bool changes;
     
-    do{
-        changes = false;
+    do{ // the algorithm to minimize the amount of boxes;
+        changes = false; // if it goes through the whole loop without making a change, it exits the loop;
         for(std::size_t i = 0; i < b; ++i){
         int temp = arr[i]->getChildren().size();
         
@@ -123,7 +123,7 @@ void doStuff(std::fstream& f){
                     arr[i]->setNumberOfChildren(arr[i]->getNumberOfChildren() - 1);
                     changes = true;
                 }
-                else if(arr[i]->getChildren()[j]->getChildren().size() == 1 && arr[i]->getChildren()[j]->getItems().empty()){
+                else if(arr[i]->getChildren()[j]->getChildren().size() == 1 && arr[i]->getChildren()[j]->getItems().empty()){ // removes a box that contains only another box;
                     arr[i]->addChild(arr[i]->getChildren()[j]->getChildren()[0]); // "0" because there if it's in the "if" statement there will be only 1 child; (a.k.a vnuka)
                     arr[i]->removeChild(j);
                     changes = true;
@@ -134,7 +134,7 @@ void doStuff(std::fstream& f){
         }
     } while (changes);
 
-//print all boxes (for testing purposes);
+//print all boxes (not just the changed ones);
 //------------------------------------------------------------------------------------------------------------
     for(std::size_t asd = 0; asd < arr.size(); ++asd){
         std::cout << std::endl;
@@ -160,6 +160,6 @@ void doStuff(std::fstream& f){
 
 int main(){
     std::fstream file("boxesList.txt");
-    doStuff(file);
+    minimizeBoxes(file);
     file.close();
 }

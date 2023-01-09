@@ -1,44 +1,43 @@
 #include <iostream>
-#include <string>
 template <typename T>
-struct Node {
+struct SkipList {
     T data;
-    Node* next;
-    Node* skip;
+    SkipList* next;
+    SkipList* skip;
 
-    Node(const T& data, Node* next = nullptr, Node* skip = nullptr) : data(data), next(next), skip(skip) {}
+    SkipList(const T& data, SkipList* next = nullptr, SkipList* skip = nullptr) : data(data), next(next), skip(skip) {}
 };
 
-Node<std::string>* toList(std::string* arr, std::size_t size) {
+SkipList<std::string>* toList(std::string* arr, std::size_t size) {
     if(!arr || !size)
         return nullptr;
 
-    Node<std::string>* start = new Node<std::string>(arr[0]);
-    Node<std::string>* current = start;
+    SkipList<std::string>* start = new SkipList<std::string>(arr[0]);
+    SkipList<std::string>* current = start;
 
     for(std::size_t i = 1; i < size; ++i){
-        current->next = new Node<std::string>(arr[i]);
+        current->next = new SkipList<std::string>(arr[i]);
         current = current->next;
     }
 
     return start;
 }
 
-void deleteList(Node<std::string>* lst) {
+void deleteList(SkipList<std::string>* lst) {
     while (lst) {
-        Node<std::string>* toDelete = lst;
+        SkipList<std::string>* toDelete = lst;
         lst = lst->next;
         delete toDelete;
     }
 }
 
-void makeSkips(Node<std::string>* head, std::string* arr1, std::string* arr2){
+void makeSkips(SkipList<std::string>* head, std::string* arr1, std::string* arr2){
     if(!head || arr1 == nullptr || arr2 == nullptr)
         return;
 
-    Node<std::string>* start = head;
-    Node<std::string>* current = start;
-    Node<std::string>* search = current;
+    SkipList<std::string>* start = head;
+    SkipList<std::string>* current = start;
+    SkipList<std::string>* search = current;
 
     int i = 0;
     while(current->next){
@@ -55,18 +54,18 @@ void makeSkips(Node<std::string>* head, std::string* arr1, std::string* arr2){
     }
 }
 
-Node<std::string>* Journey(Node<std::string>* head, std::string* arr){
+SkipList<std::string>* Journey(SkipList<std::string>* head, std::string* arr){
     if(!head)
         return nullptr;
     if(!arr)
         return head;
 
 
-    Node<std::string>* search = head;
-    Node<std::string>* current = head;
+    SkipList<std::string>* search = head;
+    SkipList<std::string>* current = head;
 
-    Node<std::string>* newListHead = new Node<std::string>(head->data);
-    Node<std::string>* newNode = newListHead;
+    SkipList<std::string>* newListHead = new SkipList<std::string>(head->data);
+    SkipList<std::string>* newNode = newListHead;
 
     int i = 0;
     while(current->next){
@@ -76,13 +75,13 @@ Node<std::string>* Journey(Node<std::string>* head, std::string* arr){
             current = current->next;
         }
         else if(current->data == arr[i]){
-            newNode->next = new Node<std::string>(current->data);
+            newNode->next = new SkipList<std::string>(current->data);
             i++;
             current = current->next;
             newNode = newNode->next;
         }
         else if(current->skip && current->skip->data == arr[i]){
-            newNode->next = new Node<std::string>(current->skip->data);
+            newNode->next = new SkipList<std::string>(current->skip->data);
             i++;
             current = current->skip;
             newNode = newNode->next;
@@ -92,7 +91,7 @@ Node<std::string>* Journey(Node<std::string>* head, std::string* arr){
                 search = search->next;
             }
             if(search->data == current->skip->data){
-                newNode->next = new Node<std::string>(current->skip->data);
+                newNode->next = new SkipList<std::string>(current->skip->data);
                 current = current->skip;
                 newNode = newNode->next;
             }
@@ -100,7 +99,7 @@ Node<std::string>* Journey(Node<std::string>* head, std::string* arr){
                 if(current->next->data == arr[i]){
                     i++;
                 }
-                newNode->next = new Node<std::string>(current->next->data);
+                newNode->next = new SkipList<std::string>(current->next->data);
                 current = current->next;
                 newNode = newNode->next;
             }
@@ -109,19 +108,19 @@ Node<std::string>* Journey(Node<std::string>* head, std::string* arr){
             if(current->next->data == arr[i]){
                 i++;
             }
-            newNode->next = new Node<std::string>(current->next->data);
+            newNode->next = new SkipList<std::string>(current->next->data);
             current = current->next;
             newNode = newNode->next;
         }
     }
     if(current->data == arr[i]){
-        newNode->next = new Node<std::string>(current->data);
+        newNode->next = new SkipList<std::string>(current->data);
     }
 
     return newListHead;
 }
 
-void printList(Node<std::string>* head) {
+void printList(SkipList<std::string>* head) {
     while(head->next) {
         std::cout << head->data << " ";
         head = head->next;
@@ -129,34 +128,6 @@ void printList(Node<std::string>* head) {
     std::cout << head->data;
 }
 
-void printSkips(Node<std::string>* head){
-    Node<std::string>* start = head;
-    Node<std::string>* current = head;
-    while(start->next){
-        if(start->skip){
-            std::cout << start->data << " ";
-            std::cout << start->skip->data;
-            std::cout << std::endl;
-        }
-        start = start->next;
-    }
-}
-
-void printWholeList(Node<std::string>* head){
-    Node<std::string>* start = head;
-    Node<std::string>* current = start;
-    while(start->next){
-        current = start;
-        std::cout << current->data << " ";
-        while(current->skip){
-            std::cout << current->skip->data << " ";
-            current = current->skip;
-        }
-        std::cout << std::endl;
-        start = start->next;
-    }
-    std::cout << start->data;
-}
 int main(){
     /*
     Sofia Plovdiv
@@ -166,7 +137,7 @@ int main(){
     NovaZagora Burgas
     */
     
-    /*    //for actual use;
+    //for actual use;
     int n;
     std::cout << "Please enter how many cities the train goes through: "; std::cin >> n;
     std::string* arr = new std::string[n];
@@ -195,9 +166,9 @@ int main(){
         std::cin >> locations[i];
     }
 
-    Node<std::string>* list = toList(arr, n);
+    SkipList<std::string>* list = toList(arr, n);
     makeSkips(list, first, second);
-    Node<std::string>* finalJourney = Journey(list, locations);
+    SkipList<std::string>* finalJourney = Journey(list, locations);
 
     std::cout << "The optimal route you can take is: ";
     printList(finalJourney);    
@@ -208,17 +179,17 @@ int main(){
     delete[] locations;
     deleteList(list);
     deleteList(finalJourney);
-*/
-
+/*
     // for easier testing;
     std::string arr[9] = {"Sofia", "Pazardzhik", "Plovdiv", "Dimitrovgrad", "StaraZagora", "NovaZagora", "Yambol", "Karnobat", "Burgas"};
     std::string first[5] = {"Sofia", "Plovdiv", "Dimitrovgrad", "StaraZagora", "NovaZagora"};
     std::string second[5] = {"Plovdiv", "NovaZagora", "NovaZagora", "Yambol", "Burgas"};
     std::string locations[3] = {"Plovdiv", "StaraZagora", "Yambol"};
-    Node<std::string>* list = toList(arr, 9);
+    SkipList<std::string>* list = toList(arr, 9);
     makeSkips(list, first, second);
-    Node<std::string>* finalJourney = Journey(list, locations);
+    SkipList<std::string>* finalJourney = Journey(list, locations);
     printList(finalJourney);
     deleteList(list);
     deleteList(finalJourney);
+*/
 }
