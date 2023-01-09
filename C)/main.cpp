@@ -5,10 +5,10 @@
 
 class Box{
 private:
-    std::string name;
-    std::vector<std::string> items;
-    std::vector<Box*> children;
-    int numberOfChildren;
+    std::string name; // label of the box;
+    std::vector<std::string> items; // items inside the box;
+    std::vector<Box*> children; // other boxes inside the box;
+    int numberOfChildren; // number of other boxes inside the box;
 
 public:
     Box(std::string name) : name(name) {};
@@ -21,12 +21,31 @@ public:
         this->items.push_back(item);
     }
 
-    const std::string getName() const {
-        return this->name;
-    }
-
     void setNumberOfChildren(int s){
         this->numberOfChildren = s;
+    }
+
+    void removeChild(int index){
+        std::queue<Box*> temp;
+        int a = this->children.size() - index + 1;
+        int b = a;
+        while(a && !this->children.empty()){
+            temp.push(this->children.back());
+            this->children.pop_back();
+            a--;
+        }
+
+        this->children.pop_back();
+
+        while(b){
+            this->children.push_back(temp.front());
+            temp.pop();
+            b--;
+        }
+    }
+
+    const std::string getName() const {
+        return this->name;
     }
 
     std::vector<std::string> getItems() const{
@@ -41,16 +60,10 @@ public:
         return this->numberOfChildren;
     }
 
+    friend void swap(Box& a, Box& b);
 };
 
-void printTree(const Box& root){
-    std::cout << root.getName() << std::endl;
-    for(const Box* child : root.getChildren()){
-        printTree(*child);
-    }
-}
-
-void clean(Box* root){
+void clean(Box* root){ // deletes memory;
     for(Box* child : root->getChildren()){
         clean(child);
     }
@@ -59,14 +72,14 @@ void clean(Box* root){
 
 void doStuff(std::fstream& f){
     int b;
-    f >> b;
+    f >> b; // the total amount of boxes;
 
     std::string temp;
     int n;
 
-    std::vector<Box*> arr;
+    std::vector<Box*> arr; // a vector where we store the boxes completely separate of eachother;
 
-    while(!f.eof()){ // reads the whole file and makes all the boxes separate of each other;
+    while(!f.eof()){
         f >> temp; // the name of the box;
         arr.push_back(new Box(temp));
 
@@ -77,7 +90,8 @@ void doStuff(std::fstream& f){
         }
 
         f >> n; // the amount of other boxes in the box;
-        arr.back()->setNumberOfChildren(n); // sets the current box's number of children (explanation not needed tbh);
+        arr.back()->setNumberOfChildren(n);
+
         for(std::size_t i = 0; i < n; ++i){ // skips the names of the inner boxes;
             f >> temp;
         }
@@ -85,17 +99,32 @@ void doStuff(std::fstream& f){
 
     int toAdd = 0;
     for(std::size_t i = 0; i < b; ++i){ // adds the smaller boxes into the bigger boxes;
-        toAdd = i + 1;
+        toAdd = i + 1; // the box is "arr[i + 1]" is always the first child that needs to be added to "arr[i]";
         for(std::size_t j = 0; j < arr[i]->getNumberOfChildren(); ++j){
             arr[i]->addChild(arr[toAdd]);
-            toAdd += arr[i + 1]->getNumberOfChildren() + 1;
+            toAdd += arr[i + 1]->getNumberOfChildren() + 1; // skips to the next box that needs to be added to "arr[i]";
         }
     }
 
+    for(std::size_t i = 0; i < b; ++i){
+        int temp = arr[i]->getChildren().size();
+        for(std::size_t j = 0; j < temp; ++j){
+            if(arr[i]->getChildren()[j]->getChildren().empty() && arr[i]->getChildren()[j]->getItems().empty()){ // removes an empty box with no boxes inside it;
+                arr[i]->removeChild(j);
+                arr[i]->setNumberOfChildren(arr[i]->getNumberOfChildren() - 1);
+            }
+            else if(arr[i]->getChildren()[j]->getChildren().size() == 1 && arr[i]->getChildren()[j]->getItems().empty()){
+                arr[i]->addChild(arr[i]->getChildren()[j]->getChildren()[0]); // "0" because there if it's in the "if" statement there will be only 1 child; (a.k.a vnuka)
+                arr[i]->removeChild(j);
+            }
+            
+        }
+
+    }
 
 //print all boxes (for testing purposes);
 //------------------------------------------------------------------------------------------------------------
-    for(std::size_t asd = 0; asd < b; ++asd){
+    for(std::size_t asd = 0; asd < arr.size(); ++asd){
         std::cout << std::endl;
         std::cout << "Name: " << arr[asd]->getName() << std::endl;
         std::cout << "Items: ";
@@ -111,8 +140,10 @@ void doStuff(std::fstream& f){
         std::cout << "Amount of children: " << arr[asd]->getNumberOfChildren() << std::endl;
         std::cout << std::endl << "---------------------" << std::endl;
     }
+
 //------------------------------------------------------------------------------------------------------------
 
+    clean(arr[0]); // delete the memory;
 }
 
 int main(){
