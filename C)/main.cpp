@@ -77,9 +77,18 @@ void doStuff(std::fstream& f){
         }
 
         f >> n; // the amount of other boxes in the box;
-        arr.back()->setNumberOfChildren(n); // sets the current box's number of children (rofl explanation);
+        arr.back()->setNumberOfChildren(n); // sets the current box's number of children (explanation not needed tbh);
         for(std::size_t i = 0; i < n; ++i){ // skips the names of the inner boxes;
             f >> temp;
+        }
+    }
+
+    int toAdd = 0;
+    for(std::size_t i = 0; i < b; ++i){ // adds the smaller boxes into the bigger boxes;
+        toAdd = i + 1;
+        for(std::size_t j = 0; j < arr[i]->getNumberOfChildren(); ++j){
+            arr[i]->addChild(arr[toAdd]);
+            toAdd += arr[i + 1]->getNumberOfChildren() + 1;
         }
     }
 
@@ -87,6 +96,7 @@ void doStuff(std::fstream& f){
 //print all boxes (for testing purposes);
 //------------------------------------------------------------------------------------------------------------
     for(std::size_t asd = 0; asd < b; ++asd){
+        std::cout << std::endl;
         std::cout << "Name: " << arr[asd]->getName() << std::endl;
         std::cout << "Items: ";
         for(std::size_t bcd = 0; bcd < arr[asd]->getItems().size(); ++bcd){
@@ -95,7 +105,7 @@ void doStuff(std::fstream& f){
         std::cout << std::endl;
         std::cout << "Children: ";
         for(std::size_t bcd = 0; bcd < arr[asd]->getChildren().size(); ++bcd){
-            std::cout << arr[asd]->getChildren()[bcd] << " ";
+            std::cout << arr[asd]->getChildren()[bcd]->getName() << " ";
         }
         std::cout << std::endl;
         std::cout << "Amount of children: " << arr[asd]->getNumberOfChildren() << std::endl;
