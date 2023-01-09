@@ -66,7 +66,7 @@ void doStuff(std::fstream& f){
 
     std::vector<Box*> arr;
 
-    for(std::size_t j = 0; j < b; ++j){ // makes all the boxes;
+    while(!f.eof()){ // reads the whole file and makes all the boxes separate of each other;
         f >> temp; // the name of the box;
         arr.push_back(new Box(temp));
 
@@ -85,6 +85,7 @@ void doStuff(std::fstream& f){
 
 
 //print all boxes (for testing purposes);
+//------------------------------------------------------------------------------------------------------------
     for(std::size_t asd = 0; asd < b; ++asd){
         std::cout << "Name: " << arr[asd]->getName() << std::endl;
         std::cout << "Items: ";
@@ -100,6 +101,7 @@ void doStuff(std::fstream& f){
         std::cout << "Amount of children: " << arr[asd]->getNumberOfChildren() << std::endl;
         std::cout << std::endl << "---------------------" << std::endl;
     }
+//------------------------------------------------------------------------------------------------------------
 
 }
 
